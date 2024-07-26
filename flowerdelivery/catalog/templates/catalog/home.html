@@ -1,0 +1,12 @@
+{% extends 'flowerdelivery/base.html' %}
+
+{% block content %}
+<div class="jumbotron text-center">
+    <h1 class="display-4">Welcome to Flower Delivery</h1>
+    <p class="lead">Order beautiful flowers delivered right to your door.</p>
+    <hr class="my-4">
+    <p>
+        <a class="btn btn-primary btn-lg" href="{% url 'product_list' %}" role="button">Browse our catalog</a>
+    </p>
+</div>
+{% endblock %}
