@@ -2,7 +2,7 @@
 
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
-from .models import CartItem, Order
+from .models import Order, CartItem
 from django.conf import settings
 from catalog.models import Product
 from django.core.mail import send_mail
@@ -10,6 +10,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.views.generic import CreateView
 from .forms import OrderForm, AddToCartForm # Предполагаем, что форма заказа находится в forms.py
+from .serializers import OrderSerializer
 
 
 def update_cart(request):
@@ -126,3 +127,6 @@ def order_detail(request, order_id):
         order.save()
     return render(request, 'orders/order_detail.html', {'order': order})
 
+class OrderViewSet(viewsets.ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer

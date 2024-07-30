@@ -16,7 +16,7 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+BOT_TOKEN='7329725916:AAFSUhqvMTU0HXaR9e'
 SECRET_KEY = 'your-secret-key'
 
 DEBUG = True
@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'accounts',
     'orders',
     'catalog.templatetags.my_custom_filters',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [

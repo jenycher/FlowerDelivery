@@ -27,6 +27,7 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('', include('catalog.urls')),
     path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),  # URL для выхода
+    path('api/', include('orders.urls')),
 ]
 
 
