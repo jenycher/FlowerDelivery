@@ -1,0 +1,51 @@
+{% extends 'flowerdelivery/base.html' %}
+{% load custom_filters %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Your Cart</h2>
+    <form method="post" action="{% url 'update_cart' %}">
+        {% csrf_token %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Select</th>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_items %}
+                <tr>
+                    <td>
+                        <input type="checkbox" name="remove_items" value="{{ item.id }}">
+                    </td>
+                    <td>{{ item.product.name }}</td>
+                    <td>
+                        <input type="number" name="quantity_{{ item.id }}" value="{{ item.quantity }}" min="1" class="form-control form-control-sm">
+                    </td>
+                    <td>{{ item.product.price|format_currency }} руб.</td>
+                    <td>{{ item.quantity|multiply:item.product.price|format_currency }} руб.</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">Your cart is empty.</td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td colspan="4"><strong>Total</strong></td>
+                    <td><strong>{{ cart_items|calc_total|format_currency }} руб.</strong></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <button type="submit" name="update" class="btn btn-secondary">Update Cart</button>
+                <button type="submit" name="remove" class="btn btn-danger">Remove Selected</button>
+            </div>
+            <a href="{% url 'order_create' %}" class="btn btn-primary">Proceed to Checkout</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

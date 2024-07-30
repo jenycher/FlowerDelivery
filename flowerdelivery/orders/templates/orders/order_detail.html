@@ -1,0 +1,44 @@
+{% extends 'flowerdelivery/base.html' %}
+{% load custom_filters %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Детали заказа №{{ order.id }}</h2>
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <strong>Дата заказа:</strong> {{ order.created_at|date:"d M Y H:i" }}
+        </div>
+        <div class="col-md-4">
+            <strong>Сумма заказа:</strong> {{ order.total_amount|format_currency }} руб.
+        </div>
+        <div class="col-md-4">
+            <strong>Статус:</strong> {{ order.status }}
+        </div>
+    </div>
+    <h3>Товары</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Наименование</th>
+                <th>Количество</th>
+                <th>Цена</th>
+                <th>Итого</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price|format_currency }} руб.</td>
+                <td>{{ item.quantity|multiply:item.price|format_currency }} руб.</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">Товары не найдены.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'order_list' %}" class="btn btn-secondary mt-3">Назад к заказам</a>
+</div>
+{% endblock %}

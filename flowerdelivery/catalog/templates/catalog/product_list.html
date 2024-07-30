@@ -1,10 +1,45 @@
-<!-- templates/catalog/product_list.html -->
 {% extends 'flowerdelivery/base.html' %}
 {% block content %}
-<h2>Catalog</h2>
-<ul>
-    {% for product in products %}
-        <li>{{ product.name }} - {{ product.price }}</li>
-    {% endfor %}
-</ul>
+<div class="container mt-4">
+    <h1>{{ category.name }}</h1>
+
+    <!-- Форма фильтрации по цене -->
+    <form method="get" class="form-inline mb-4">
+        <div class="form-group mr-2">
+            <label for="price_min" class="mr-2">Мин. цена:</label>
+            <input type="number" id="price_min" name="price_min" class="form-control" value="{{ price_min }}">
+        </div>
+        <div class="form-group mr-2">
+            <label for="price_max" class="mr-2">Макс. цена:</label>
+            <input type="number" id="price_max" name="price_max" class="form-control" value="{{ price_max }}">
+        </div>
+        <button type="submit" class="btn btn-primary">Фильтровать</button>
+    </form>
+
+    <div class="row">
+        {% for product in products %}
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text">{{ product.description }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">{{ product.price }} руб.</span>
+
+                            <!-- Форма добавления в корзину -->
+                            <form method="post" action="{% url 'add_to_cart' %}" class="form-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="product_id" value="{{ product.id }}">
+                                <input type="number" name="quantity" value="1" min="1" class="form-control mr-2" style="width: 60px;">
+                                <button type="submit" class="btn btn-primary btn-sm">Add to Cart</button>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
 {% endblock %}

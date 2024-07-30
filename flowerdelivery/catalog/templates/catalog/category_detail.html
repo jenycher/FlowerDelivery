@@ -1,0 +1,16 @@
+<!-- catalog/templates/catalog/category_detail.html -->
+{% extends 'flowerdelivery/base.html' %}
+
+{% block content %}
+<h1>{{ category.name }}</h1>
+<ul>
+    {% for product in products %}
+    <li>
+        <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 100px;"/>
+        <h2>{{ product.name }}</h2>
+        <p>Price: {{ product.price }}</p>
+        <p>{{ product.description }}</p>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

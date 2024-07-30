@@ -7,5 +7,7 @@ from .forms import CustomUserCreationForm
 
 class SignUpView(generic.CreateView):
     form_class = CustomUserCreationForm
-    success_url = reverse_lazy('login')
+    success_url = reverse_lazy('login') # После успешной регистрации перенаправляем на страницу входа
     template_name = 'accounts/signup.html'
+
+

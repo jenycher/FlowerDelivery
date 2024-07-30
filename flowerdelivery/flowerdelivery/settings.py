@@ -33,13 +33,14 @@ INSTALLED_APPS = [
     'catalog',
     'accounts',
     'orders',
+    'catalog.templatetags.my_custom_filters',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',  # Эта строка должна быть здесь
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -104,6 +105,41 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.CustomUser'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+LOGOUT_REDIRECT_URL = '/'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    },
+}
+
+# Настройки для отправки электронной почты
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.yandex.com'  # SMTP-сервер Yandex
+EMAIL_PORT = 587  # Порт для TLS
+EMAIL_USE_TLS = True  # Использовать TLS
+EMAIL_HOST_USER = 'jenycher@yandex.ru'  # Ваша Yandex-почта
+EMAIL_HOST_PASSWORD = 'JenyCher8177@'  # Пароль от почты Yandex
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  # Email по умолчанию для отправки писем
+
+# Пример конфигурации для Yandex
+PASSWORD_RESET_TIMEOUT = 1800  # 30 минут, время в секундах, пока будет активна ссылка сброса пароля
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = '/'  # Перенаправление на главную страницу
 
 
 
