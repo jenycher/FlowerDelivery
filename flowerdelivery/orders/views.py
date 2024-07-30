@@ -11,6 +11,7 @@ from django.utils import timezone
 from django.views.generic import CreateView
 from .forms import OrderForm, AddToCartForm # Предполагаем, что форма заказа находится в forms.py
 from .serializers import OrderSerializer
+from rest_framework import viewsets
 
 
 def update_cart(request):
