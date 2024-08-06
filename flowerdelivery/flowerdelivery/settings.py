@@ -143,6 +143,9 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = '/'  # Перенаправление на главную страницу
 
 
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000']
+
+
 
 
 

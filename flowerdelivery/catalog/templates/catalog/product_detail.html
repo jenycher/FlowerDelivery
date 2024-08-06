@@ -1,4 +1,4 @@
-{% extends 'flowerdelivery/base.html' %}
+﻿{% extends 'flowerdelivery/base.html' %}
 {% block content %}
 <div class="container mt-4">
     <h1>{{ product.name }}</h1>
@@ -10,7 +10,7 @@
         {% csrf_token %}
         <input type="hidden" name="product_id" value="{{ product.id }}">
         <input type="number" name="quantity" value="1" min="1" class="form-control mr-2">
-        <button type="submit" class="btn btn-primary">Add to Cart</button>
+        <button type="submit" class="btn btn-primary">В корзину</button>
     </form>
 </div>
 {% endblock %}

@@ -7,10 +7,10 @@ class CustomUserAdmin(UserAdmin):
     model = CustomUser
 
     # Определяем поля, которые будут отображаться в списке пользователей
-    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'is_active')
+    list_display = ('username', 'email', 'telegram_id', 'first_name', 'last_name', 'is_staff', 'is_active')
 
     # Поля, по которым можно осуществлять поиск в админке
-    search_fields = ('username', 'email', 'first_name', 'last_name')
+    search_fields = ('username', 'email', 'telegram_id', 'first_name', 'last_name')
 
     # Поля, по которым можно фильтровать пользователей
     list_filter = ('is_staff', 'is_active')

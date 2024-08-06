@@ -2,6 +2,7 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
 from django.contrib.auth.decorators import login_required
+from .views import check_user_exists, CheckUserExistsByTelegramId
 
 urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
@@ -19,6 +20,7 @@ urlpatterns = [
          name='password_reset_complete'),
     path('password_change/', login_required(auth_views.PasswordChangeView.as_view()), name='password_change'),
     path('password_change/done/', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
-
-    # другие маршруты...
+    path('api/check_user_exists/', check_user_exists, name='check_user_exists'),
+    path('api/check_user_exists_tg/', CheckUserExistsByTelegramId.as_view(), name='check_user_exists_tg'),
+    path('api/register/', views.register_via_telegram, name='register_via_telegram'),
 ]

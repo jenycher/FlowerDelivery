@@ -1,3 +1,4 @@
+<!-- templates/orders/order_detail.html -->
 {% extends 'flowerdelivery/base.html' %}
 {% load custom_filters %}
 {% block content %}
@@ -5,14 +6,15 @@
     <h2>Детали заказа №{{ order.id }}</h2>
     <div class="row mb-4">
         <div class="col-md-4">
-            <strong>Дата заказа:</strong> {{ order.created_at|date:"d M Y H:i" }}
+            <strong>Адрес доставки:</strong> {{ order.address }}
+        </div>
+        <div class="col-md-4">
+            <strong>Телефон:</strong> {{ order.telephone }}
         </div>
         <div class="col-md-4">
             <strong>Сумма заказа:</strong> {{ order.total_amount|format_currency }} руб.
         </div>
-        <div class="col-md-4">
-            <strong>Статус:</strong> {{ order.status }}
-        </div>
+
     </div>
     <h3>Товары</h3>
     <table class="table">

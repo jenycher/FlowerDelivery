@@ -1,7 +1,7 @@
 <!-- templates/orders/order_form.html -->
 {% extends 'base.html' %}
 {% block content %}
-<h2>Create Order</h2>
+<h2>Создайте заказ</h2>
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}

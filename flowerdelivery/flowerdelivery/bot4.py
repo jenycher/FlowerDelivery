@@ -34,6 +34,28 @@ class OrderForm(StatesGroup):
     delivery_date = State()
     delivery_time = State()
     confirm_order = State()
+    order_status = State()
+
+
+REGISTER_URL = 'http://127.0.0.1:8000/accounts/api/register/'
+@dp.message(Command("registration"))
+async def registration(message: types.Message):
+    telegram_id = message.from_user.id
+    name = message.from_user.full_name
+
+    # Отправка данных на сайт для регистрации
+    response = requests.post(REGISTER_URL, json={
+        'telegram_id': telegram_id,
+        'name': name
+    })
+
+    if response.status_code == 200:
+        await message.answer("Вы успешно зарегистрированы!")
+    elif response.status_code == 400 and response.json().get('error') == 'Пользователь уже существует':
+        await message.answer("Вы уже зарегистрированы!")
+    else:
+        await message.answer(f"Ошибка регистрации. Попробуйте снова. Код ошибки: {response.status_code}")
+
 
 
 def is_user_registered(email):
@@ -50,7 +72,9 @@ def is_user_registered(email):
 @dp.message(Command("start"))
 async def send_welcome(message: types.Message):
     await message.answer(
-        "Приветствую в FlowerDelivery Bot! Для просмотра каталога используйте команду /catalog. Для оформления заказа используйте команду /order."
+        "Приветствую в FlowerDelivery Bot!\n"
+        "Для просмотра каталога цветов используйте команду /catalog.\n"
+        "Для оформления заказа используйте команду /order."
     )
 
 
@@ -59,6 +83,15 @@ def create_confirm_keyboard():
         inline_keyboard=[
             [InlineKeyboardButton(text="Да", callback_data="confirm_yes")],
             [InlineKeyboardButton(text="Нет", callback_data="confirm_no")]
+        ]
+    )
+    return keyboard
+
+def create_confirm_ord_keyboard():
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="Да", callback_data="confirm_ord_yes")],
+            [InlineKeyboardButton(text="Нет", callback_data="confirm_ord_no")]
         ]
     )
     return keyboard
@@ -84,6 +117,16 @@ def create_product_keyboard(products):
     return keyboard
 
 
+@dp.message(Command("help"))
+async def send_help(message: types.Message):
+    help_text = (
+        "Вы находитесь в FlowerDelivery Bot - доставка цветов!\n\n"
+        "Для просмотра категорий и товаров используйте команду /catalog.\n"
+        "Для оформления заказа используйте команду /order и следуйте инструкциям.\n"
+        "Для регистрации используйте команду /registration.\n"
+        "Для просмотра статуса заказа используйте команду /status номер_заказа"
+    )
+    await message.answer(help_text)
 @dp.message(Command("catalog"))
 async def show_catalog(message: types.Message):
     logger.info("Received /catalog command from user %s", message.from_user.username)
@@ -305,12 +348,49 @@ async def confirm_order(callback_query: CallbackQuery, state: FSMContext):
 
     data = await state.get_data()
     items = data.get('items')
+    #address = data.get('address')
+    #telephone = data.get('telephone')
+    #delivery_date = data.get('delivery_date')
+    #delivery_time = data.get('delivery_time')
+    #email = data.get('email')
+    #user_id = data.get('user_id')
+
+    #total_amount = str(sum(item['quantity'] * float(item['price']) for item in items))
+
+   # выведем весь заказ на экран, чтобы покупатель его подтвердил
+    order_summary = (
+        f"Подтвердите ваш заказ:\n\n"
+        f"Email: {data['email']}\n"
+        f"Номер телефона: {data['telephone']}\n"
+        f"Адрес доставки: {data['address']}\n"
+        f"Дата доставки: {data['delivery_date']}\n"
+        f"Время доставки: {data['delivery_time']}\n\n"
+        f"Товары:\n"
+    )
+
+    for item in data['items']:
+        product = next((p for p in data['products'] if p['id'] == item['product']), None)
+        if product:
+            order_summary += f"{product['name']} - {item['quantity']} шт. - {item['price']} руб./шт.\n"
+
+    total_amount = str(sum(item['quantity'] * float(item['price']) for item in data['items']))
+    order_summary += f"\nОбщая сумма: {total_amount} руб."
+
+    #await message.answer(order_summary, reply_markup=create_confirm_keyboard())
+    await bot.send_message(callback_query.from_user.id, order_summary, reply_markup=create_confirm_ord_keyboard())
+
+    await state.set_state(OrderForm.confirm_order)
+
+@dp.callback_query(lambda c: c.data and c.data == 'confirm_ord_yes')
+async def process_order(callback_query: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
     address = data.get('address')
     telephone = data.get('telephone')
     delivery_date = data.get('delivery_date')
     delivery_time = data.get('delivery_time')
     email = data.get('email')
     user_id = data.get('user_id')
+    items = data.get('items')
 
     total_amount = str(sum(item['quantity'] * float(item['price']) for item in items))
 
@@ -331,7 +411,10 @@ async def confirm_order(callback_query: CallbackQuery, state: FSMContext):
     try:
         response = requests.post('http://127.0.0.1:8000/orders/api/orders/', json=order_data)
         response.raise_for_status()
-        await bot.send_message(callback_query.from_user.id, "Ваш заказ был успешно оформлен!")
+        order_response = response.json()
+        order_id = order_response.get('id')
+
+        await bot.send_message(callback_query.from_user.id, f"Ваш заказ № {order_id} был успешно оформлен!")
         await state.clear()
     except requests.RequestException as e:
         await bot.send_message(callback_query.from_user.id, "Не удалось оформить заказ. Попробуйте позже.")
@@ -340,12 +423,59 @@ async def confirm_order(callback_query: CallbackQuery, state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
 
 
-@dp.callback_query(lambda c: c.data and c.data == 'confirm_no')
+@dp.callback_query(lambda c: c.data and c.data == 'confirm_ord_no')
 async def cancel_order(callback_query: CallbackQuery, state: FSMContext):
     await bot.send_message(callback_query.from_user.id, "Заказ был отменен.")
     await state.clear()
     await bot.answer_callback_query(callback_query.id)
 
+
+@dp.message(Command("status"))
+async def get_order_status(message: types.Message):
+    API_URL = 'http://127.0.0.1:8000/orders/api/order_status/'
+    STATUS_CHOICES = {
+        'Ordered': 'Оформлен',
+        'In Progress': 'В работе',
+        'Delivering': 'Доставляется',
+        'Completed': 'Завершен',
+    }
+
+    command_parts = message.text.split()
+    if len(command_parts) < 2:
+        await message.reply("Пожалуйста, укажите номер заказа. Пример: /status 123")
+        return
+
+    order_id = command_parts[1]
+    if not order_id.isdigit():
+        await message.reply("Пожалуйста, укажите корректный номер заказа.")
+        return
+
+    response = requests.get(f'{API_URL}{order_id}/')
+    if response.status_code == 200:
+        data = response.json()
+        status_code = data.get('status', 'Unknown')
+        status_text = STATUS_CHOICES.get(status_code, 'Неизвестный статус')
+        await message.reply(f"Статус вашего заказа №{data['id']}: {status_text}")
+    else:
+        await message.reply("Заказ не найден или произошла ошибка.")
+
+
+API_URL = 'http://127.0.0.1:8000/orders/api/order_list/'
+@dp.message(Command('orders_list'))
+async def list_orders(message: types.Message):
+    try:
+        response = requests.get(API_URL)
+        if response.status_code == 200:
+            orders = response.json()
+            if not orders:
+                await message.reply("У вас нет заказов.")
+            else:
+                orders_list = "\n".join([f"Order ID: {order['id']}" for order in orders])
+                await message.reply(f"Ваши заказы:\n{orders_list}")
+        else:
+            await message.reply("Ошибка при получении заказов.")
+    except Exception as e:
+        await message.reply(f"Произошла ошибка: {e}")
 
 async def main():
     await dp.start_polling(bot)

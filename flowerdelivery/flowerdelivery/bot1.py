@@ -29,8 +29,8 @@ class OrderForm(StatesGroup):
     product = State()
     quantity = State()
     more_products = State()
+    telephone = State()  # Добавлено состояние для телефона
     address = State()
-    telephone = State()
     delivery_date = State()
     delivery_time = State()
     confirm_order = State()
@@ -236,83 +236,94 @@ async def process_more_products(callback_query: CallbackQuery, state: FSMContext
 
 @dp.callback_query(lambda c: c.data and c.data == 'confirm_no')
 async def finalize_order_details(callback_query: CallbackQuery, state: FSMContext):
-    await bot.send_message(callback_query.from_user.id, "Введите контактный телефон:")
-    await state.set_state(OrderForm.telephone)
-    await bot.answer_callback_query(callback_query.id)
+    await bot.send_message(callback_query.from_user.id, "Пожалуйста, введите ваш номер телефона:")
+    await state.set_state(OrderForm.telephone)  # Переход к состоянию телефона
+
 
 @dp.message(OrderForm.telephone)
-async def enter_telephone(message: types.Message, state: FSMContext):
+async def get_telephone(message: types.Message, state: FSMContext):
     telephone = message.text
     await state.update_data(telephone=telephone)
-    await message.answer("Введите адрес доставки:")
+    await message.answer("Пожалуйста, введите адрес доставки.")
     await state.set_state(OrderForm.address)
 
 
 @dp.message(OrderForm.address)
-async def choose_delivery_date(message: types.Message, state: FSMContext):
+async def get_delivery_address(message: types.Message, state: FSMContext):
     address = message.text
     await state.update_data(address=address)
 
-    today = datetime.today() + timedelta(days=1)
-    dates = [today + timedelta(days=i) for i in range(8)]  # Генерируем 8 дат
-    keyboard_buttons = []
+    today = datetime.today()
+    dates = [today + timedelta(days=i) for i in range(8)]
+    date_options = [date.strftime("%Y-%m-%d") for date in dates]
+    date_keyboard = ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text=date)] for date in date_options],
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
 
-    for i in range(0, len(dates), 4):
-        row = [
-            InlineKeyboardButton(text=f" {date.strftime('%d-%m')} ",
-                                 callback_data=f"date_{date.strftime('%Y-%m-%d')}")
-            for date in dates[i:i + 4]
-        ]
-        keyboard_buttons.append(row)
-
-    keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
-
-    await message.answer("Выберите дату доставки:", reply_markup=keyboard)
+    await message.answer("Введите дату доставки (выберите из предложенных вариантов):", reply_markup=date_keyboard)
     await state.set_state(OrderForm.delivery_date)
 
 
-@dp.callback_query(lambda c: c.data and c.data.startswith('date_'))
-async def choose_delivery_time(callback_query: CallbackQuery, state: FSMContext):
-    delivery_date = callback_query.data.split('_')[1]
+@dp.message(OrderForm.delivery_date)
+async def get_delivery_time(message: types.Message, state: FSMContext):
+    delivery_date = message.text
     await state.update_data(delivery_date=delivery_date)
 
+    time_keyboard = ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="10:00"), KeyboardButton(text="12:00")],
+            [KeyboardButton(text="14:00"), KeyboardButton(text="16:00")],
+            [KeyboardButton(text="18:00"), KeyboardButton(text="20:00")]
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
 
-
-    hours = list(range(9, 21))  # Диапазон от 9 до 20
-    keyboard_buttons = []
-    for hour in hours:
-        time_text = f"{hour:02d}:00"
-        button = InlineKeyboardButton(text=f" {time_text} ", callback_data=f"time_{time_text}")
-        keyboard_buttons.append(button)
-
-    # Разделяем кнопки на 3 строки по 4 времени
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        keyboard_buttons[:4],
-        keyboard_buttons[4:8],
-        keyboard_buttons[8:]
-    ])
-
-
-    await bot.send_message(callback_query.from_user.id, "Выберите время доставки:", reply_markup=keyboard)
+    await message.answer("Введите время доставки (выберите из предложенных вариантов):", reply_markup=time_keyboard)
     await state.set_state(OrderForm.delivery_time)
-    await bot.answer_callback_query(callback_query.id)
 
 
-@dp.callback_query(lambda c: c.data and c.data.startswith('time_'))
-async def confirm_order(callback_query: CallbackQuery, state: FSMContext):
-    delivery_time = callback_query.data.split('_')[1]
+@dp.message(OrderForm.delivery_time)
+async def confirm_order(message: types.Message, state: FSMContext):
+    delivery_time = message.text
     await state.update_data(delivery_time=delivery_time)
 
     data = await state.get_data()
-    items = data.get('items')
+    email = data.get('email')
     address = data.get('address')
+    delivery_date = data.get('delivery_date')
+    items = data.get('items')
     telephone = data.get('telephone')
+    user_id = data.get('user_id')
+    total_amount = sum(item['price'] * item['quantity'] for item in items)
+
+    order_details = (
+        f"Email: {email}\n"
+        f"Телефон: {telephone}\n"
+        f"Адрес: {address}\n"
+        f"Дата доставки: {delivery_date}\n"
+        f"Время доставки: {delivery_time}\n"
+        f"Товары: {items}\n"
+        f"Общая сумма: {total_amount}\n"
+    )
+
+    await message.answer(f"Пожалуйста, подтвердите ваш заказ:\n\n{order_details}", reply_markup=create_confirm_keyboard())
+    await state.set_state(OrderForm.confirm_order)
+
+
+@dp.callback_query(lambda c: c.data and c.data == 'confirm_yes', state=OrderForm.confirm_order)
+async def process_order(callback_query: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    email = data.get('email')
+    address = data.get('address')
     delivery_date = data.get('delivery_date')
     delivery_time = data.get('delivery_time')
-    email = data.get('email')
+    items = data.get('items')
+    telephone = data.get('telephone')
     user_id = data.get('user_id')
-
-    total_amount = str(sum(item['quantity'] * float(item['price']) for item in items))
+    total_amount = str(sum(float(item['price']) * item['quantity'] for item in items))
 
     order_data = {
         'user': user_id,
@@ -322,34 +333,29 @@ async def confirm_order(callback_query: CallbackQuery, state: FSMContext):
         'contact': email,
         'telephone': telephone,
         'total_amount': total_amount,
-        'status': 'Ordered',
+        'status': 'Оформлен',
         'items': items
     }
-
-    logger.info(f"Отправляемые данные заказа: {json.dumps(order_data, indent=2)}")
 
     try:
         response = requests.post('http://127.0.0.1:8000/orders/api/orders/', json=order_data)
         response.raise_for_status()
         await bot.send_message(callback_query.from_user.id, "Ваш заказ был успешно оформлен!")
-        await state.clear()
     except requests.RequestException as e:
-        await bot.send_message(callback_query.from_user.id, "Не удалось оформить заказ. Попробуйте позже.")
+        await bot.send_message(callback_query.from_user.id, f"Не удалось оформить заказ: {e}")
         logger.error(f"Failed to create order: {e}")
 
-    await bot.answer_callback_query(callback_query.id)
-
-
-@dp.callback_query(lambda c: c.data and c.data == 'confirm_no')
-async def cancel_order(callback_query: CallbackQuery, state: FSMContext):
-    await bot.send_message(callback_query.from_user.id, "Заказ был отменен.")
     await state.clear()
-    await bot.answer_callback_query(callback_query.id)
+
+
+@dp.callback_query(lambda c: c.data and c.data == 'confirm_no', state=OrderForm.confirm_order)
+async def cancel_order(callback_query: CallbackQuery, state: FSMContext):
+    await bot.send_message(callback_query.from_user.id, "Ваш заказ был отменен.")
+    await state.clear()
 
 
 async def main():
     await dp.start_polling(bot)
-
 
 if __name__ == "__main__":
     asyncio.run(main())

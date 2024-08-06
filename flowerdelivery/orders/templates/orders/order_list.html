@@ -9,8 +9,10 @@
             <thead>
                 <tr>
                     <th>Номер заказа</th>
-                    <th>Дата</th>
+                    <th>Дата заказа</th>
                     <th>Сумма</th>
+                    <th>Дата и время доставки</th>
+                    <th>Статус</th>
                     <th>Действия</th>
                 </tr>
             </thead>
@@ -18,10 +20,13 @@
                 {% for order in orders %}
                 <tr>
                     <td>{{ order.id }}</td>
-                    <td>{{ order.created_at|date:"d M Y H:i" }}</td>
+                    <td>{{ order.created_at|date:"d.m.y" }}</td>
                     <td>{{ order.total_amount|format_currency }} руб.</td>
+                    <td>{{ order.delivery_date|date:"d.m.y" }} {{ order.delivery_time|time:"H:i" }}</td>
+                    <td>{{ order.get_status_display }}</td> <!-- Отображение статуса заказа -->
                     <td>
                         <a href="{% url 'order_detail' order.id %}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+                        <a href="{% url 'repeat_order' order.id %}" class="btn btn-sm btn-outline-secondary">Повторить заказ</a>
                     </td>
                 </tr>
                 {% endfor %}

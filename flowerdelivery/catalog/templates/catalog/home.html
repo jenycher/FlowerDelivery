@@ -3,11 +3,17 @@
 {% block content %}
 <div class="container mt-4">
     <div class="jumbotron">
-        <h1 class="display-4">Welcome to Flower Delivery</h1>
-        <p class="lead">Find the perfect flowers for every occasion. Browse our selection of bouquets and individual flowers.</p>
+        <h1 class="display-4">Добро пожаловать на сайт доставки цветов Flower Delivery</h1>
+        <p class="lead">Найдите идеальные цветы для любого случая. Подберите для себя букеты и цветы.</p>
         <hr class="my-4">
-        <p>Click below to explore our catalog.</p>
-        <a class="btn btn-primary btn-lg" href="{% url 'category_list' %}" role="button">Browse our catalog</a>
+
+        <a class="btn btn-primary btn-lg" href="{% url 'category_list' %}" role="button">Перейти в каталог</a>
     </div>
 </div>
+    <footer class="bg-dark text-white text-center py-3 mt-4">
+        <p>&copy; 2024 Flower Delivery. Все права защищены.</p>
+        <p>
+            <a href="{% url 'contact' %}" class="text-white">Контакты</a> тел. 123 TelegramBot =@flower_express_bot
+        </p>
+    </footer>
 {% endblock %}
