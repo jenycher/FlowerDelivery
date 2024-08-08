@@ -16,8 +16,6 @@ class Order(models.Model):
         ('Delivering', 'Доставляется'),
         ('Completed', 'Завершен'),
     ]
-
-
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     delivery_date = models.DateField(default=timezone.now())  # Дата доставки

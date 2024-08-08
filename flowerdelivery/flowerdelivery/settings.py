@@ -33,6 +33,8 @@ INSTALLED_APPS = [
     'catalog',
     'accounts',
     'orders',
+    'reviews',
+    'reports',
     'catalog.templatetags.my_custom_filters',
     'rest_framework',
 ]
@@ -133,8 +135,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.yandex.com'  # SMTP-сервер Yandex
 EMAIL_PORT = 587  # Порт для TLS
 EMAIL_USE_TLS = True  # Использовать TLS
-EMAIL_HOST_USER = 'jenycher@yandex.ru'  # Ваша Yandex-почта
-EMAIL_HOST_PASSWORD = 'JenyCher8177@'  # Пароль от почты Yandex
+EMAIL_HOST_USER = 'deliveryflow@yandex.ru'  # Ваша Yandex-почта
+EMAIL_HOST_PASSWORD = 'DeliveryFlow2024'  # Пароль от почты Yandex
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  # Email по умолчанию для отправки писем
 
 # Пример конфигурации для Yandex

@@ -5,7 +5,7 @@
     <img src="{{ product.image.url }}" class="img-fluid" alt="{{ product.name }}">
     <p>{{ product.description }}</p>
     <p>Price: {{ product.price }} руб.</p>
-    <!-- Можно добавить кнопку для добавления в корзину здесь -->
+    <!-- Кнопка для добавления в корзину -->
     <form method="post" action="{% url 'add_to_cart' %}" class="form-inline">
         {% csrf_token %}
         <input type="hidden" name="product_id" value="{{ product.id }}">

@@ -9,6 +9,8 @@ from django.http import JsonResponse
 import logging
 from rest_framework import generics
 from .serializers import ProductSerializer
+from reviews.models import Review
+from django.db.models import Avg
 
 def home(request):
     categories = Category.objects.all()
@@ -41,11 +43,22 @@ def product_list(request, category_id):
     if price_max:
         products = products.filter(price__lte=price_max)
 
+    # Получение всех отзывов для продуктов
+    product_reviews = Review.objects.filter(product__in=products)
+
+    # Расчет среднего рейтинга для каждого продукта
+    product_ratings = {}
+    for product in products:
+        avg_rating = product_reviews.filter(product=product).aggregate(Avg('rating'))['rating__avg']
+        product_ratings[product.id] = avg_rating or 0
+
     return render(request, 'catalog/product_list.html', {
         'category': category,
         'products': products,
         'price_min': price_min,
         'price_max': price_max,
+        'product_reviews': product_reviews,
+        'product_ratings': product_ratings,
     })
 
 
@@ -72,9 +85,15 @@ def product_detail(request, pk):
     serializer = ProductSerializer(product)
     return Response(serializer.data)
 
-def product_detail(request, pk):
-    product = get_object_or_404(Product, pk=pk)
-    return render(request, 'catalog/product_detail.html', {'product': product})
+
+def product_detail(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    reviews = Review.objects.filter(product=product)  # Получение отзывов для продукта
+    context = {
+        'product': product,
+        'reviews': reviews,
+    }
+    return render(request, 'catalog/product_detail.html', context)
 
 def contact(request):
     return render(request, 'contact.html')

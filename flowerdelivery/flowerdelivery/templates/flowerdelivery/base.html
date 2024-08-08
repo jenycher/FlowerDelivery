@@ -27,11 +27,30 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'password_change' %}">Сменить пароль</a>
                 </li>
+                {% if user.is_staff %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="adminReportsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Отчеты
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="adminReportsDropdown">
+                        <a class="dropdown-item" href="{% url 'sales_report' %}">Общие продажи</a>
+                        <a class="dropdown-item" href="{% url 'popular_products' %}">Популярные товары</a>
+                        <a class="dropdown-item" href="{% url 'average_orders' %}">Среднее количество заказов на покупателя</a>
+                        <a class="dropdown-item" href="{% url 'average_ratings' %}">Средний рейтинг товаров</a>
+                    </div>
+                </li>
                 <li class="nav-item">
-                     <form action="{% url 'logout' %}" method="post" class="form-inline">
+                    <a class="nav-link" href="{% url 'admin_orders' %}">Просмотр заказов</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="http://127.0.0.1:8000/admin">Администрирование</a>
+                </li>
+                {% endif %}
+                <li class="nav-item">
+                    <form action="{% url 'logout' %}" method="post" class="form-inline">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-link nav-link">Выйти</button>
-                     </form>
+                    </form>
                 </li>
                 {% else %}
                 <li class="nav-item">
@@ -48,7 +67,15 @@
         {% block content %}
         {% endblock %}
     </div>
-
+{% if messages %}
+    <div class="container mt-4">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

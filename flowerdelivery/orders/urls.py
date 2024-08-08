@@ -23,6 +23,7 @@ urlpatterns = [
     path('api/order_status/<int:order_id>/', OrderStatusApi.as_view(), name='order_status_api'),
     path('api/user_orders/', UserOrdersApi.as_view(), name='user_orders'),
     path('<int:order_id>/repeat/', repeat_order, name='repeat_order'),
+    path('reviews/', include('reviews.urls')),
 
 ]
 
